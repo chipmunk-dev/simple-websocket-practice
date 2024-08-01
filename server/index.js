@@ -1,13 +1,17 @@
-const WebSocket = require('ws');
+const http = require('http');
+const socketIo = require('socket.io');
 
-const wss = new WebSocket.Server({ port: 7071 });
+const server = http.createServer();
+const io = socketIo(server, { cors: { origin: '* ' } });
 
-wss.on('connection', (ws) => {
-  console.log("Connected Server!!");
-  ws.send('connected');
+io.on('connection', (socket) => {
+  console.log('a user connected!');
 
-  ws.on('message', (messageFromClient) => {
-    const message = JSON.parse(messageFromClient);
-    console.log(message);
-  })
+  socket.on('message', (message) => {
+    io.emit('message', `${socket.id.substr(0, 2)}: ${message}`);
+  });
+});
+
+server.listen(8080, () => {
+  console.log('listening on http://localhost:8080');
 })
