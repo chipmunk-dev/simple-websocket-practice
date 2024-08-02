@@ -2,7 +2,9 @@ const express = require('express');
 const path = require('path')
 const http = require('http');
 const { Server } = require('socket.io');
-const { addUser } = require('./utils/users');
+
+const { addUser, getUsersInRoom } = require('./utils/users');
+const { generateMessage } = require('./utils/messages');
 
 const app = express();
 const server = http.createServer(app);
@@ -24,6 +26,14 @@ io.on('connection', (socket) => {
       }
 
       socket.join(options.room);
+
+      socket.emit('message', generateMessage('Admin', `${user.room} 방에 오신 걸 환영합니다.`));
+      socket.broadcast.to(user.room).emit('message', generateMessage('', `${user.username}가 방에 참여했습니다.`));
+
+      io.to(user.room).emit('roomData', {
+        room: user.room,
+        users: getUsersInRoom(user.room),
+      });
   });
 
   socket.on('sendMessage', () => {});
